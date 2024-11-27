@@ -14,6 +14,17 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _designationController = TextEditingController();
 
   @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback(
+      (timeStamp) async {
+        await HomeScreenController.getEmployee();
+        setState(() {});
+      },
+    );
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -56,16 +67,43 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 24),
               Center(
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      HomeScreenController.addEmployee(
+                      await HomeScreenController.addEmployee(
                           name: _nameController.text,
                           designation: _designationController.text);
+                      setState(() {});
                     }
                   },
                   child: const Text('Save'),
                 ),
               ),
+              Expanded(
+                  child: ListView.builder(
+                itemCount: HomeScreenController.employeesList.length,
+                itemBuilder: (context, index) => ListTile(
+                  onTap: () async {
+                    await HomeScreenController.updateEmployee(
+                        name: "updated name",
+                        designation: "updated designation",
+                        id: HomeScreenController.employeesList[index]["id"]);
+                    setState(() {});
+                  },
+                  trailing: IconButton(
+                      onPressed: () async {
+                        await HomeScreenController.deleteEmployee(
+                            HomeScreenController.employeesList[index]["id"]);
+                        setState(() {});
+                      },
+                      icon: Icon(Icons.delete)),
+                  leading: Text(HomeScreenController.employeesList[index]["id"]
+                      .toString()),
+                  title:
+                      Text(HomeScreenController.employeesList[index]["name"]),
+                  subtitle: Text(
+                      HomeScreenController.employeesList[index]["designation"]),
+                ),
+              ))
             ],
           ),
         ),
